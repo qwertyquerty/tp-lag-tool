@@ -36,7 +36,14 @@ namespace mod
 
        private:
         // Counter
-        int i;
+        int32_t total_frames = 0;
+        int64_t total_lag = 0;
+
+        int32_t expected_frame_time_us = 0;
+        int64_t last_os_time_us = 0;
+
+        bool measuring = false;
+
         // Console
         libtp::display::Console c;
         // "trampoline/return" function to the original function that we hook in order to proc our NewFrame function
@@ -46,5 +53,7 @@ namespace mod
          * @brief This function is called when there's a frame update
          */
         void procNewFrame();
+
+        uint64_t getOSTimeUs();
     };
 }     // namespace mod

@@ -2,6 +2,15 @@
 80003458:memset
 80003540:memcpy
 
+// OSTime.o
+803426FC:OSGetTime
+
+// os.o
+800000F8:__OSBusClock
+
+// runtime.o
+80362324:__divdi3
+
 // m_Do_ext.o
 // text
 8000EDF4:getArchiveHeapPtr

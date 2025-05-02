@@ -12,6 +12,11 @@
 #include <main.h>
 #include <patch.h>     // Contains code for hooking into a function
 #include <tp/f_ap_game.h>
+#include <gc_wii/os.h>
+#include <gc_wii/OSTime.h>
+#include <cstring>
+#include <cstdio>
+#include <tp/m_do_controller_pad.h>
 
 namespace mod
 {
@@ -25,31 +30,21 @@ namespace mod
 
     void exit() {}
 
-    // Create our console instance (it will automatically display some of the definitions from our Makefile like version,
-    // variant, project name etc.
-    // this console can be used in a similar way to cout to make printing a little easier; it also supports \n for new lines
-    // (\r is implicit; UNIX-Like) and \r for just resetting the column and has overloaded constructors for all of the
-    // primary cinttypes
     Mod::Mod(): c( 0 )
     {
-        i = 0;
+        total_frames = 0;
+        total_lag = 0;
+        last_os_time_us = 0;
+        expected_frame_time_us = 33367;
     }
 
     void Mod::init()
     {
-        /**
-         * Old way of printing to the console
-         * Kept for reference as its still being used by the new console class.
-         *
-         * libtp::display::setConsole(true, 25);
-         * libtp::display::print(1, "Hello World!");
-         */
-        c << "Hello world!\n\n";
-
         gMod = this;
         // Hook the function that runs each frame
-        return_fapGm_Execute =
-            libtp::patch::hookFunction( libtp::tp::f_ap_game::fapGm_Execute, []() { return gMod->procNewFrame(); } );
+        libtp::display::setConsoleColor(0, 0, 0, 0);
+
+        return_fapGm_Execute = libtp::patch::hookFunction( libtp::tp::f_ap_game::fapGm_Execute, []() { return gMod->procNewFrame(); } );
     }
 
     void Mod::procNewFrame()
@@ -57,15 +52,72 @@ namespace mod
         // This runs BEFORE the original (hooked) function (fapGm_Execute)
 
         // we can do whatever stuff we like... counting for example:
-        i++;
-        c << "\r"
-          << "Frames: " << i;
 
-        // return what our original function would've returned (in this case the return is obsolete since it is a void func)
-        // And most importantly, since this is related to the frame output, call the original function at all because it may do
-        // important stuff that would otherwise be skipped!
+        uint64_t cur_os_time_us = getOSTimeUs();
+        
+        libtp::display::print(0, "Madeline's Lag Tool");
+        libtp::display::print(1, "");
+        
+        int32_t frame_time = cur_os_time_us - last_os_time_us;
+        int32_t frame_lag = frame_time - expected_frame_time_us;
 
-        return return_fapGm_Execute();     // hookFunction replaced this return_ function with a branch back to the original
-                                           // function so that we can use it now
+
+        if (measuring) {
+            total_lag += frame_lag;
+            total_frames++;
+
+            libtp::display::print(2, "R+Y to stop");
+
+            if (
+                (libtp::tp::m_do_controller_pad::cpadInfo[0].mButtonFlags & libtp::tp::m_do_controller_pad::Button_R) &&
+                (libtp::tp::m_do_controller_pad::cpadInfo[0].mButtonFlags & libtp::tp::m_do_controller_pad::Button_Y)
+            ) {
+                measuring = false;
+            }
+        }
+        else {
+            libtp::display::print(2, "R+X to start");
+
+            if (
+                (libtp::tp::m_do_controller_pad::cpadInfo[0].mButtonFlags & libtp::tp::m_do_controller_pad::Button_R) &&
+                (libtp::tp::m_do_controller_pad::cpadInfo[0].mButtonFlags & libtp::tp::m_do_controller_pad::Button_X)
+            ) {
+                total_lag = 0;
+                total_frames = 0;
+                measuring = true;
+            }
+        }
+
+        char total_frames_line[32];
+        char frame_time_line[32];
+        char frame_lag_line[32];
+        char total_lag_line[32];
+        char avg_lag_line[32];
+
+        sprintf(total_frames_line, "Frames:     %d", total_frames);
+        sprintf(total_lag_line,    "Total Lag:  %lldms", total_lag/1000);
+
+        if (total_frames != 0) {
+            sprintf(avg_lag_line,      "Avg Lag:    %lldms", total_lag/total_frames/1000);
+        } else {
+            sprintf(avg_lag_line,      "Avg Lag:    ...");
+        }
+
+        sprintf(frame_time_line,   "Frame Time: %dms", frame_time/1000);
+        sprintf(frame_lag_line,    "Frame Lag:  %dms", frame_lag/1000);
+
+        libtp::display::print(4, total_frames_line);
+        libtp::display::print(5, frame_time_line);
+        libtp::display::print(6, frame_lag_line);
+        libtp::display::print(7, total_lag_line);
+        libtp::display::print(8, avg_lag_line);
+
+        last_os_time_us = cur_os_time_us;
+ 
+        return return_fapGm_Execute();
+    }
+
+    uint64_t Mod::getOSTimeUs() {
+        return libtp::gc_wii::os_time::OSGetTime() * 4'000'000 / libtp::gc_wii::os::__OSBusClock;
     }
 }     // namespace mod
