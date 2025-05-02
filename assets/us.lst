@@ -10,6 +10,7 @@
 
 // runtime.o
 80362324:__divdi3
+803626BC:__floatdisf
 
 // m_Do_ext.o
 // text

@@ -60,7 +60,7 @@ namespace mod
         
         int32_t frame_time = cur_os_time_us - last_os_time_us;
         int32_t frame_lag = frame_time - expected_frame_time_us;
-
+        frame_lag = frame_lag < 0 ? 0 : frame_lag;
 
         if (measuring) {
             total_lag += frame_lag;
@@ -95,16 +95,16 @@ namespace mod
         char avg_lag_line[32];
 
         sprintf(total_frames_line, "Frames:     %d", total_frames);
-        sprintf(total_lag_line,    "Total Lag:  %lldms", total_lag/1000);
+        sprintf(total_lag_line,    "Total Lag:  %.1fms", (float)total_lag/1000.0f);
 
         if (total_frames != 0) {
-            sprintf(avg_lag_line,      "Avg Lag:    %lldms", total_lag/total_frames/1000);
+            sprintf(avg_lag_line,      "Avg Lag:    %.1fms", (float)total_lag/(float)total_frames/1000.0f);
         } else {
             sprintf(avg_lag_line,      "Avg Lag:    ...");
         }
 
-        sprintf(frame_time_line,   "Frame Time: %dms", frame_time/1000);
-        sprintf(frame_lag_line,    "Frame Lag:  %dms", frame_lag/1000);
+        sprintf(frame_time_line,   "Frame Time: %.1fms", (float)frame_time/1000.0f);
+        sprintf(frame_lag_line,    "Frame Lag:  %.1fms", (float)frame_lag/1000.0f);
 
         libtp::display::print(4, total_frames_line);
         libtp::display::print(5, frame_time_line);
