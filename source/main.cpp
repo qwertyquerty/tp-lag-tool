@@ -1,11 +1,11 @@
 /**
  * @file main.cpp
- * @author your name (you@domain.com)
+ * @author Madeline (qwertytrogi@gmail.com)
  * @brief
  * @version 0.1
- * @date YYYY-MM-DD
+ * @date 2025-05-01
  *
- * @copyright Copyright (c) YYYY
+ * @copyright Copyright (c) 2025
  *
  */
 #include <display/console.h>     // Contains a very neat helper class to print to the console

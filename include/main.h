@@ -1,11 +1,11 @@
 /**
  * @file main.h
- * @author your name (you@domain.com)
+ * @author Madeline (qwertytrogi@gmail.com)
  * @brief
  * @version 0.1
- * @date YYYY-MM-DD
+ * @date 2025-05-01
  *
- * @copyright Copyright (c) YYYY
+ * @copyright Copyright (c) 2025
  *
  */
 #pragma once
